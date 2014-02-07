@@ -18,19 +18,27 @@ var ActivityLog = Backbone.View.extend({
     //configure javascript cookie library
     $.cookie.defaults.path = '/';
     this.load_cookie();
-    sharejs.open("newspad_activity", "json", function(error, doc){
-      this.data = doc; 
 
-      // initialize site-wide activity log
-      // should only ever be needed once
-      // per deploy
-      if(this.data.version == 0){
-        this.data.set({log:[], sessions:{}});
-      }
+    // CHANGE TO TRUE TO ENABLE LOGGING
+    this.logging_activated = false;
+    
+    if(this.logging_activated){
+      sharejs.open("newspad_activity", "json", function(error, doc){
+        this.data = doc; 
+  
+        // initialize site-wide activity log
+        // should only ever be needed once
+        // per deploy
+        if(this.data.version == 0){
+          this.data.set({log:[], sessions:{}});
+        }
+  
+        this.log_load();
 
-      this.log_load();
-
-    }.bind(this));
+      }.bind(this));
+    }else{
+      this.data =null;
+    }
   },
 
   load_cookie: function(){
@@ -58,6 +66,9 @@ var ActivityLog = Backbone.View.extend({
   },
 
   new_log_entry: function(action, value, doc){
+    if(!this.logging_activated){
+      return;
+    }
     // time, doc, session, action
     if(_.isUndefined(value)){
       value = null;
